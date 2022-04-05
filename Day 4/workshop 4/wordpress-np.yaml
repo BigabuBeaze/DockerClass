@@ -1,0 +1,79 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: 
+      name: wordpress-np-db-deny-a
+      labels:
+          name: wordpress-np-db-deny-a
+spec:
+    podSelector:
+        matchLabels:
+            app.kubernetes.io/component: database
+    policyTypes:
+        - Ingress
+        - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: 
+    name: wordpress-np-db-allow-app
+    labels:
+        name: wordpress-np-db-allow-app
+spec:
+    podSelector: 
+        matchLabels:
+            app.kubernetes.io/component: database
+    policyTypes:
+        - Ingress
+        - Egress
+    ingress:
+        - from: 
+            - podSelector:
+                matchLabels:
+                    name: wordpress-app-pod
+    egress:
+        - to:
+            - podSelector:
+                matchLabels:
+                    name: wordpress-app-pod
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: 
+      name: wordpress-np-app-deny-a
+      labels:
+          name: wordpress-np-app-deny-a
+spec:
+    podSelector:
+        matchLabels:
+            name: wordpress-app-pod
+    policyTypes:
+        - Ingress
+        # - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: 
+    name: wordpress-np-app-allow-nginx-db
+    labels:
+        name: wordpress-np-app-allow-nginx-db
+spec:
+    podSelector:
+        matchLabels:
+            name: wordpress-app-pod
+    policyTypes:
+        - Ingress
+        # - Egress
+    ingress:
+        - from:
+            - namespaceSelector:
+                matchLabels:
+                    kubernetes.io/metadata.name: ingress-nginx
+            - podSelector:
+                matchLabels:
+                    app.kubernetes.io/name: ingress-nginx
+    # egress:
+    #     - to:
+    #         - podSelector: 
+    #             matchLabels:
+    #                 app.kubernetes.io/component: database
